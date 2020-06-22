@@ -1,4 +1,4 @@
-# simplefuzz
+# simplefuzzer
 
 Simple fuzzer
 

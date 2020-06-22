@@ -71,6 +71,7 @@ set fileencodings=ucs-bom,utf-8,default,latin1
 set helplang=en
 set hidden
 set laststatus=2
+set operatorfunc=<SNR>25_go
 set ruler
 set runtimepath=~/.vim,~/.vim/plugged/vim-airline/,~/.vim/plugged/vim-airline-themes/,~/.vim/plugged/promptline.vim/,~/.vim/plugged/seoul256.vim/,~/.vim/plugged/scratch.vim/,~/.vim/plugged/vim-smoothie/,~/.vim/plugged/vim-abolish/,~/.vim/plugged/vim-commentary/,~/.vim/plugged/vim-surround/,/usr/local/share/vim/vimfiles,/usr/local/share/vim/vim81,/usr/local/share/vim/vimfiles/after,~/.vim/after
 set shiftwidth=4
@@ -226,15 +227,15 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 1 - ((0 * winheight(0) + 37) / 74)
+let s:l = 306 - ((61 * winheight(0) + 37) / 74)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-1
-normal! 0
+306
+normal! 042|
 wincmd w
 argglobal
-if bufexists("Makefile") | buffer Makefile | else | edit Makefile | endif
+if bufexists("simplefuzz.c") | buffer simplefuzz.c | else | edit simplefuzz.c | endif
 setlocal keymap=
 setlocal noarabic
 setlocal noautoindent
@@ -246,14 +247,14 @@ setlocal breakindentopt=
 setlocal bufhidden=
 setlocal buflisted
 setlocal buftype=
-setlocal nocindent
+setlocal cindent
 setlocal cinkeys=0{,0},0),0],:,0#,!^F,o,O,e
 setlocal cinoptions=
 setlocal cinwords=if,else,while,do,for,switch
 set colorcolumn=80
 setlocal colorcolumn=80
-setlocal comments=sO:#\ -,mO:#\ \ ,b:#
-setlocal commentstring=#\ %s
+setlocal comments=sO:*\ -,mO:*\ \ ,exO:*/,s1:/*,mb:*,ex:*/,://
+setlocal commentstring=/*%s*/
 setlocal complete=.,w,b,u,t,i
 setlocal concealcursor=
 setlocal conceallevel=0
@@ -269,9 +270,9 @@ setlocal dictionary=
 setlocal nodiff
 setlocal equalprg=
 setlocal errorformat=
-setlocal noexpandtab
-if &filetype != 'make'
-setlocal filetype=make
+setlocal expandtab
+if &filetype != 'c'
+setlocal filetype=c
 endif
 setlocal fixendofline
 setlocal foldcolumn=0
@@ -291,10 +292,10 @@ setlocal formatprg=
 setlocal grepprg=
 setlocal iminsert=0
 setlocal imsearch=-1
-setlocal include=^\\s*include
+setlocal include=
 setlocal includeexpr=
-setlocal indentexpr=GetMakeIndent()
-setlocal indentkeys=!^F,o,O,<:>,=else,=endif
+setlocal indentexpr=
+setlocal indentkeys=0{,0},0),0],:,0#,!^F,o,O,e
 setlocal noinfercase
 setlocal iskeyword=@,48-57,_,192-255
 setlocal keywordprg=
@@ -311,7 +312,7 @@ setlocal nrformats=bin,octal,hex
 set number
 setlocal number
 setlocal numberwidth=4
-setlocal omnifunc=
+setlocal omnifunc=ccomplete#Complete
 setlocal path=
 setlocal nopreserveindent
 setlocal nopreviewwindow
@@ -336,8 +337,8 @@ setlocal statusline=%!airline#statusline(2)
 setlocal suffixesadd=
 setlocal swapfile
 setlocal synmaxcol=3000
-if &syntax != 'make'
-setlocal syntax=make
+if &syntax != 'c'
+setlocal syntax=c
 endif
 setlocal tabstop=4
 setlocal tagcase=
@@ -356,19 +357,20 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 3 - ((2 * winheight(0) + 37) / 74)
+let s:l = 59 - ((24 * winheight(0) + 37) / 74)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-3
+59
 normal! 0
 wincmd w
 2wincmd w
 exe 'vert 1resize ' . ((&columns * 106 + 106) / 213)
 exe 'vert 2resize ' . ((&columns * 106 + 106) / 213)
 tabnext 1
-badd +1 simplefuzz.c
-badd +0 Makefile
+badd +60 simplefuzz.c
+badd +2 Makefile
+badd +19 README.md
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0
   silent exe 'bwipe ' . s:wipebuf
 endif
@@ -380,7 +382,6 @@ if file_readable(s:sx)
   exe "source " . fnameescape(s:sx)
 endif
 let &so = s:so_save | let &siso = s:siso_save
-nohlsearch
 doautoall SessionLoadPost
 unlet SessionLoad
 " vim: set ft=vim :

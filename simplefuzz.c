@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,6 +67,23 @@ static void help(void){
     printf("    -u          unique: don't change the same byte more than once (optional)\n");
 }
 
+static int *shufflearray(size_t sz){
+    int *ret = malloc(sizeof(int) * sz);
+
+    for(int i=0; i<sz; i++)
+        ret[i] = i;
+
+    for(int i=sz-1; i>0; i--){
+        uint32_t idx = arc4random_uniform(sz);
+
+        int temp = ret[i];
+        ret[i] = ret[idx];
+        ret[idx] = temp;
+    }
+
+    return ret;
+}
+
 int main(int argc, char **argv){
     if(argc < 2){
         help();
@@ -73,7 +91,7 @@ int main(int argc, char **argv){
     }
 
     int b_switch = 0;
-    char user_fuzz_byte = 0;
+    unsigned char user_fuzz_byte = 0;
 
     int e_switch = 0;
     size_t user_end_offset = 0;
@@ -253,11 +271,23 @@ int main(int argc, char **argv){
 
     size_t inputfilesize = st.st_size;
 
+    if(n_switch && user_bytes_to_change > inputfilesize){
+        printf("Your bytes to change value, %#zx, is larger than the input"
+                " file size, %#zx\n", user_bytes_to_change, inputfilesize);
+
+        free(inputfilename);
+        free(outputfilename);
+
+        close(inputfilefd);
+
+        return 1;
+    }
+
     if(!e_switch)
         user_end_offset = inputfilesize;
 
-    if(s_switch && user_start_offset > inputfilesize){
-        printf("Your start offset, %#zx, is larger than input file size, %#zx\n",
+    if(s_switch && user_start_offset >= inputfilesize){
+        printf("Your start offset, %#zx, is >= input file size, %#zx\n",
                 user_start_offset, inputfilesize);
 
         free(inputfilename);
@@ -268,8 +298,8 @@ int main(int argc, char **argv){
         return 1;
     }
 
-    if(e_switch && user_end_offset > inputfilesize){
-        printf("Your end offset, %#zx, is larger than input file size, %#zx\n",
+    if(e_switch && user_end_offset >= inputfilesize){
+        printf("Your end offset, %#zx, is >= input file size, %#zx\n",
                 user_end_offset, inputfilesize);
 
         free(inputfilename);
@@ -295,18 +325,75 @@ int main(int argc, char **argv){
         return 1;
     }
 
-    /* *(char*)inputfiledata = 0x41; */
+    FILE *outputfileobj = fopen(outputfilename, "w");
 
-    printf("ok\n");
+    if(!outputfileobj){
+        printf("fopen: couldn't create output file '%s': %s\n", outputfilename,
+                strerror(errno));
+
+        free(inputfilename);
+        free(outputfilename);
+
+        munmap(inputfiledata, inputfilesize);
+
+        return 1;
+    }
 
     /* we're allowed to fuzz fuzzsz bytes from user_start_offset */
     size_t fuzzsz = user_end_offset - user_start_offset;
 
     printf("allowed to fuzz %#zx bytes starting from offset %#zx\n", fuzzsz,
             user_start_offset);
-    // XXX if unique, be sure to check if we've changed all avaailable bytes
 
+    int *shuffoffs = NULL;
 
+    if(u_switch){
+        shuffoffs = shufflearray(fuzzsz);
+
+        if(user_start_offset != 0){
+            for(int i=0; i<fuzzsz; i++){
+                shuffoffs[i] += user_start_offset;
+            }
+        }
+    }
+
+    int shuffoffsidx = 0;
+
+    /* fuzz loop */
+    for(;;){
+        if(user_bytes_to_change == 0){
+            printf("user_bytes_to_change == 0, done\n");
+            break;
+        }
+
+        uint32_t roff;
+
+        if(!u_switch)
+            roff = arc4random_uniform(fuzzsz) + user_start_offset;
+        else{
+            if(shuffoffsidx == fuzzsz){
+                printf("shuffoffsidx == fuzzsz, done\n");
+                break;
+            }
+
+            roff = shuffoffs[shuffoffsidx++];
+        }
+
+        unsigned char rbyte;
+
+        if(b_switch)
+            rbyte = user_fuzz_byte;
+        else
+            rbyte = (unsigned char)arc4random_uniform(UCHAR_MAX);
+
+        *(char *)((uintptr_t)inputfiledata + roff) = rbyte;
+
+        printf("*(char *)((uintptr_t)inputfiledata + %#x) = %#x\n", roff, rbyte);
+
+        user_bytes_to_change--;
+    }
+
+    // XXX write fuzzed file to output file
 
     munmap(inputfiledata, inputfilesize);
 
