@@ -227,25 +227,25 @@ int main(int argc, char **argv){
         concat(&outputfilename, "%s-fuzzed-%s.%s", inputfilename, timestr, dot + 1);
     }
 
-    printf("input file '%s' output file '%s'\n", inputfilename, outputfilename);
+    /* printf("input file '%s' output file '%s'\n", inputfilename, outputfilename); */
 
-    printf("b switch: %d\n", b_switch);
-    if(b_switch)
-        printf("user_fuzz_byte: %c\n", user_fuzz_byte);
+    /* printf("b switch: %d\n", b_switch); */
+    /* if(b_switch) */
+    /*     printf("user_fuzz_byte: %c\n", user_fuzz_byte); */
 
-    printf("e switch: %d\n", e_switch);
-    if(e_switch)
-        printf("user_end_offset: %#zx\n", user_end_offset);
+    /* printf("e switch: %d\n", e_switch); */
+    /* if(e_switch) */
+    /*     printf("user_end_offset: %#zx\n", user_end_offset); */
 
-    printf("n switch: %d\n", n_switch);
-    if(n_switch)
-        printf("user_bytes_to_change: %#zx\n", user_bytes_to_change);
+    /* printf("n switch: %d\n", n_switch); */
+    /* if(n_switch) */
+    /*     printf("user_bytes_to_change: %#zx\n", user_bytes_to_change); */
 
-    printf("s switch: %d\n", s_switch);
-    if(s_switch)
-        printf("user_start_offset: %#zx\n", user_start_offset);
+    /* printf("s switch: %d\n", s_switch); */
+    /* if(s_switch) */
+    /*     printf("user_start_offset: %#zx\n", user_start_offset); */
 
-    printf("u switch: %d\n", u_switch);
+    /* printf("u switch: %d\n", u_switch); */
 
     struct stat st;
 
@@ -342,8 +342,8 @@ int main(int argc, char **argv){
     /* we're allowed to fuzz fuzzsz bytes from user_start_offset */
     size_t fuzzsz = user_end_offset - user_start_offset;
 
-    printf("allowed to fuzz %#zx bytes starting from offset %#zx\n", fuzzsz,
-            user_start_offset);
+    /* printf("allowed to fuzz %#zx bytes starting from offset %#zx\n", fuzzsz, */
+    /*         user_start_offset); */
 
     int *shuffoffs = NULL;
 
@@ -362,7 +362,7 @@ int main(int argc, char **argv){
     /* fuzz loop */
     for(;;){
         if(user_bytes_to_change == 0){
-            printf("user_bytes_to_change == 0, done\n");
+            /* printf("user_bytes_to_change == 0, done\n"); */
             break;
         }
 
@@ -372,7 +372,7 @@ int main(int argc, char **argv){
             roff = arc4random_uniform(fuzzsz) + user_start_offset;
         else{
             if(shuffoffsidx == fuzzsz){
-                printf("shuffoffsidx == fuzzsz, done\n");
+                /* printf("shuffoffsidx == fuzzsz, done\n"); */
                 break;
             }
 
@@ -388,15 +388,20 @@ int main(int argc, char **argv){
 
         *(char *)((uintptr_t)inputfiledata + roff) = rbyte;
 
-        printf("*(char *)((uintptr_t)inputfiledata + %#x) = %#x\n", roff, rbyte);
+        /* printf("*(char *)((uintptr_t)inputfiledata + %#x) = %#x\n", roff, rbyte); */
 
         user_bytes_to_change--;
     }
 
-    // XXX write fuzzed file to output file
+    free(shuffoffs);
+
+    fwrite(inputfiledata, sizeof(char), inputfilesize, outputfileobj);
+    fclose(outputfileobj);
+
+    free(inputfilename);
+    free(outputfilename);
 
     munmap(inputfiledata, inputfilesize);
-
 
     return 0;
 }

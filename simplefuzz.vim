@@ -227,12 +227,12 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 306 - ((61 * winheight(0) + 37) / 74)
+let s:l = 330 - ((0 * winheight(0) + 37) / 74)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-306
-normal! 042|
+330
+normal! 0
 wincmd w
 argglobal
 if bufexists("simplefuzz.c") | buffer simplefuzz.c | else | edit simplefuzz.c | endif
@@ -357,20 +357,19 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 59 - ((24 * winheight(0) + 37) / 74)
+let s:l = 278 - ((14 * winheight(0) + 37) / 74)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-59
+278
 normal! 0
 wincmd w
-2wincmd w
 exe 'vert 1resize ' . ((&columns * 106 + 106) / 213)
 exe 'vert 2resize ' . ((&columns * 106 + 106) / 213)
 tabnext 1
-badd +60 simplefuzz.c
+badd +1 simplefuzz.c
 badd +2 Makefile
-badd +19 README.md
+badd +1 README.md
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0
   silent exe 'bwipe ' . s:wipebuf
 endif
