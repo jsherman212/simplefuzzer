@@ -6,6 +6,8 @@ simplefuzzer usage
 
     -b          use this byte for changes instead of arc4random (optional)
 
+    -d          fuzzed output file directory (optional)
+
     -e          don't touch anything after this file offset (optional)
 
     -f          input file name

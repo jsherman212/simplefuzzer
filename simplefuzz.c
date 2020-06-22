@@ -59,6 +59,7 @@ static int concat(char **dst, const char *src, ...){
 static void help(void){
     printf("simplefuzzer usage\n");
     printf("    -b          use this byte for changes instead of arc4random (optional)\n");
+    printf("    -d          fuzzed output file directory (optional)\n");
     printf("    -e          don't touch anything after this file offset (optional)\n");
     printf("    -f          input file name\n");
     printf("    -n          number of bytes to change in input file (default: 1)\n");
@@ -93,6 +94,9 @@ int main(int argc, char **argv){
     int b_switch = 0;
     unsigned char user_fuzz_byte = 0;
 
+    int d_switch = 0;
+    char *outputfiledir = NULL;
+
     int e_switch = 0;
     size_t user_end_offset = 0;
 
@@ -112,7 +116,7 @@ int main(int argc, char **argv){
     int c;
     opterr = 0;
 
-    while((c = getopt(argc, argv, "b:e:f:n:o:s:u")) != -1){
+    while((c = getopt(argc, argv, "b:d:e:f:n:o:s:u")) != -1){
         switch(c){
             case 'b':
                 {
@@ -124,6 +128,14 @@ int main(int argc, char **argv){
                         printf("b switch: invalid value '%s'\n", optarg);
                         return 1;
                     }
+
+                    break;
+                }
+            case 'd':
+                {
+                    d_switch = 1;
+                    char *dnptr = NULL;
+                    outputfiledir = strdup(optarg);
 
                     break;
                 }
@@ -200,6 +212,7 @@ int main(int argc, char **argv){
     if(!inputfilename){
         printf("No input file name\n");
 
+        free(outputfiledir);
         free(outputfilename);
 
         return 1;
@@ -212,6 +225,7 @@ int main(int argc, char **argv){
         printf("No extension on input file '%s'\n", inputfilename);
         
         free(inputfilename);
+        free(outputfiledir);
         free(outputfilename);
 
         return 1;
@@ -224,10 +238,18 @@ int main(int argc, char **argv){
         char timestr[0x100] = {0};
         strftime(timestr, sizeof(timestr), "%c", ptm);
 
-        concat(&outputfilename, "%s-fuzzed-%s.%s", inputfilename, timestr, dot + 1);
+        if(!d_switch)
+            concat(&outputfilename, "%s", inputfilename);
+        else{
+            char *slash = strrchr(inputfilename, '/');
+            concat(&outputfilename, "%s/%s", outputfiledir, slash ? slash + 1 : inputfilename);
+        }
+
+        concat(&outputfilename, "-fuzzed-%s.%s", timestr, dot + 1);
     }
 
     /* printf("input file '%s' output file '%s'\n", inputfilename, outputfilename); */
+    /* return 0; */
 
     /* printf("b switch: %d\n", b_switch); */
     /* if(b_switch) */
